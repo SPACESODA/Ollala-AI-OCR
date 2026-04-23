@@ -1,0 +1,4 @@
+ollama
+pdf2image
+pillow
+flask

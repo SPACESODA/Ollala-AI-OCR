@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ollala AI OCR</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="workspace">
+        <div class="masthead">
+          <div>
+            <p class="eyebrow">Local AI-based OCR</p>
+            <h1>Ollala AI OCR</h1>
+          </div>
+          <div class="status-pill" id="appStatus">Ready</div>
+        </div>
+
+        <form id="ocrForm" class="layout">
+          <section class="drop-zone" id="dropZone">
+            <input id="fileInput" name="files" type="file" multiple>
+            <input id="folderInput" name="folder" type="file" webkitdirectory multiple>
+            <div class="drop-copy">
+              <span class="drop-icon">+</span>
+              <h2>Drop PDFs, images, or folders</h2>
+              <p>Files stay local, are copied to a run folder, then processed by the Python AI-based OCR script.</p>
+            </div>
+            <div class="drop-actions">
+              <button type="button" id="chooseFiles">Choose Files</button>
+              <button type="button" id="chooseFolder">Choose Folder</button>
+            </div>
+          </section>
+
+          <aside class="controls">
+            <label>
+              Quality Profile
+              <select id="profile" name="profile">
+                <option value="safe">Safe - large/scanned PDFs</option>
+                <option value="balanced">Balanced</option>
+                <option value="default">Default detail</option>
+                <option value="detail">Higher detail</option>
+              </select>
+            </label>
+
+            <div class="grid-2">
+              <label>
+                DPI
+                <input id="dpi" name="dpi" type="number" min="72" value="120">
+              </label>
+              <label>
+                Max Side
+                <input id="maxSide" name="max_side" type="number" min="512" value="1600">
+              </label>
+            </div>
+
+            <div class="grid-2">
+              <label>
+                Context
+                <input id="numCtx" name="num_ctx" type="number" min="2048" value="4096">
+              </label>
+              <label>
+                Keep Alive
+                <input id="keepAlive" name="keep_alive" type="text" value="0">
+              </label>
+            </div>
+
+            <div class="grid-2">
+              <label>
+                Timeout
+                <input id="requestTimeout" name="request_timeout" type="number" min="1" value="120">
+              </label>
+              <label>
+                Retries
+                <input id="pageRetries" name="page_retries" type="number" min="0" value="2">
+              </label>
+            </div>
+
+            <div class="grid-2">
+              <label>
+                Image Format
+                <select id="imageFormat" name="image_format">
+                  <option value="jpeg">JPEG</option>
+                  <option value="png">PNG</option>
+                </select>
+              </label>
+              <label>
+                JPEG Quality
+                <input id="jpegQuality" name="jpeg_quality" type="number" min="1" max="95" value="82">
+              </label>
+            </div>
+
+            <label>
+              Output Folder
+              <input id="outputDir" name="output_dir" type="text" placeholder="Blank = download to browser Downloads folder">
+            </label>
+
+            <button type="submit" class="run-button" id="runButton">Run OCR</button>
+          </aside>
+        </form>
+
+        <section class="queue">
+          <div class="section-head">
+            <h2>Selected Files</h2>
+            <div class="inline-actions">
+              <button type="button" id="clearFiles">Clear Selection</button>
+              <button type="button" id="clearRuns">Clear Inactive Runs</button>
+            </div>
+          </div>
+          <ul id="fileList" class="file-list">
+            <li>No files selected.</li>
+          </ul>
+        </section>
+
+        <section class="output">
+          <div class="section-head">
+            <h2>Progress</h2>
+            <span id="outputPath"></span>
+          </div>
+          <pre id="logs">Waiting for a job...</pre>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      window.OCR_PROFILES = {{ profiles | tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+  </body>
+</html>
