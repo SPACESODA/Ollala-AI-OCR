@@ -35,7 +35,9 @@ http://127.0.0.1:8765
 ```
 
 Keep the Terminal window open while using the web interface. Stop the server
-with `Control-C` when you are done.
+with the **Shut Down Ollala** button at the bottom of the web interface, or
+with `Control-C` in Terminal. After shutdown, the web page tries to close its
+browser tab automatically; if your browser blocks that, close the tab manually.
 
 ## What The Web Interface Supports
 
@@ -49,6 +51,7 @@ with `Control-C` when you are done.
 - Automatic browser download when the output folder is left blank.
 - Manual cleanup for inactive `web_runs`.
 - Automatic cleanup for old `web_runs`.
+- One-click shutdown for the local web app after OCR jobs are finished.
 - Live progress logs from the Python OCR process.
 
 Supported input formats:

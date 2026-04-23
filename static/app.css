@@ -8,6 +8,8 @@
   --accent: #176b5b;
   --accent-strong: #0e4f43;
   --warn: #9a4d12;
+  --danger: #9f2f24;
+  --danger-strong: #7f2119;
   --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -42,6 +44,11 @@ button {
 
 button:hover {
   border-color: var(--accent);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .shell {
@@ -269,6 +276,37 @@ select:focus {
   white-space: pre-wrap;
 }
 
+.app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 6px 2px 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.shutdown-button {
+  border-color: rgba(159, 47, 36, 0.28);
+  background: #fff7f5;
+  color: var(--danger);
+  font-weight: 800;
+}
+
+.shutdown-button:hover {
+  border-color: var(--danger);
+  background: #fff1ee;
+}
+
+.is-shutdown .workspace > :not(.masthead):not(.app-footer) {
+  opacity: 0.58;
+}
+
+.close-blocked .app-footer p {
+  color: var(--danger);
+  font-weight: 700;
+}
+
 @media (max-width: 860px) {
   .layout {
     grid-template-columns: 1fr;
@@ -281,5 +319,10 @@ select:focus {
 
   .drop-zone {
     min-height: 320px;
+  }
+
+  .app-footer {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

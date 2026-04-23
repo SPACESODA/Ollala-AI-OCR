@@ -252,6 +252,23 @@ def cleanup_web_runs() -> Response:
     return jsonify({"removed": removed})
 
 
+@app.post("/api/shutdown")
+def shutdown_app() -> tuple[Response, int] | Response:
+    if request.remote_addr not in {"127.0.0.1", "::1"}:
+        return jsonify({"error": "Shutdown is only available from this Mac."}), 403
+
+    with jobs_lock:
+        active_job_ids = [
+            job.id for job in jobs.values() if job.status in {"queued", "running"}
+        ]
+
+    if active_job_ids:
+        return jsonify({"error": "Wait for the current OCR job to finish first."}), 409
+
+    threading.Thread(target=delayed_shutdown, daemon=True).start()
+    return jsonify({"message": "Ollala AI OCR is shutting down."})
+
+
 def resolve_output_dir(raw_output_dir: str, job_root: Path) -> Path:
     cleaned = raw_output_dir.strip()
     if cleaned:
@@ -396,6 +413,11 @@ def cleanup_loop() -> None:
     while True:
         time.sleep(CLEANUP_INTERVAL_SECONDS)
         cleanup_runs(force_completed=False)
+
+
+def delayed_shutdown() -> None:
+    time.sleep(0.5)
+    os._exit(0)
 
 
 def job_snapshot(job: Job) -> dict[str, object]:

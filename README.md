@@ -7,7 +7,7 @@ The workflow stays local: PDFs are rendered into page images with Poppler,
 images are normalized with Pillow, each page/image is sent to the local Ollama
 model, and the result is saved as `.md`.
 
-To use Ollala locally with a clean, user-friendly web interface, check out the [Web Interface Guide](README-web.md).
+To use Ollala locally with a clean, user-friendly web interface, check out Ollala's [Web Interface](README-web.md).
 
 If you want ultra-fast, non-AI-based PDF to text conversion, check out my other open-source project: [pdf2txt](https://spacesoda.github.io/pdf2txt/).
 

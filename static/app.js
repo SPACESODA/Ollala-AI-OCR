@@ -14,6 +14,7 @@ const logs = document.querySelector("#logs");
 const appStatus = document.querySelector("#appStatus");
 const outputPath = document.querySelector("#outputPath");
 const runButton = document.querySelector("#runButton");
+const shutdownApp = document.querySelector("#shutdownApp");
 
 const profile = document.querySelector("#profile");
 const dpi = document.querySelector("#dpi");
@@ -30,6 +31,7 @@ chooseFiles.addEventListener("click", () => fileInput.click());
 chooseFolder.addEventListener("click", () => folderInput.click());
 clearFiles.addEventListener("click", clearSelection);
 clearRuns.addEventListener("click", cleanupRuns);
+shutdownApp.addEventListener("click", shutdownServer);
 
 fileInput.addEventListener("change", () => {
   addFiles(Array.from(fileInput.files).map((file) => ({ file, path: file.name })));
@@ -269,6 +271,43 @@ async function cleanupRuns() {
   } finally {
     clearRuns.disabled = false;
   }
+}
+
+async function shutdownServer() {
+  const confirmed = window.confirm(
+    "Shut down Ollala AI OCR? The local web interface will stop running. You can close this tab after shutdown.",
+  );
+  if (!confirmed) return;
+
+  shutdownApp.disabled = true;
+  try {
+    const response = await fetch("/api/shutdown", { method: "POST" });
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload.error || "Shutdown failed.");
+    }
+    appStatus.textContent = "Stopping";
+    appendLog(payload.message || "Ollala AI OCR is shutting down.");
+    setTimeout(() => {
+      document.body.classList.add("is-shutdown");
+      appStatus.textContent = "Stopped";
+      appendLog("Closing this browser tab...");
+      closeBrowserTabSoon();
+    }, 700);
+  } catch (error) {
+    appendLog(error.message);
+    shutdownApp.disabled = false;
+  }
+}
+
+function closeBrowserTabSoon() {
+  setTimeout(() => {
+    window.close();
+    setTimeout(() => {
+      document.body.classList.add("close-blocked");
+      appendLog("You can close this tab now. Your local server has stopped.");
+    }, 500);
+  }, 1500);
 }
 
 function setLog(text) {
