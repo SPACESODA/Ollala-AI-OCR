@@ -55,7 +55,7 @@ PROFILE_OPTIONS = {
         "keep_alive": "0",
         "image_format": "jpeg",
         "jpeg_quality": "82",
-        "request_timeout": "120",
+        "request_timeout": "300",
         "page_retries": "2",
     },
     "balanced": {
@@ -65,7 +65,7 @@ PROFILE_OPTIONS = {
         "keep_alive": "30s",
         "image_format": "jpeg",
         "jpeg_quality": "85",
-        "request_timeout": "180",
+        "request_timeout": "420",
         "page_retries": "2",
     },
     "default": {
@@ -75,7 +75,7 @@ PROFILE_OPTIONS = {
         "keep_alive": "30s",
         "image_format": "jpeg",
         "jpeg_quality": "85",
-        "request_timeout": "180",
+        "request_timeout": "420",
         "page_retries": "2",
     },
     "detail": {
@@ -85,7 +85,7 @@ PROFILE_OPTIONS = {
         "keep_alive": "30s",
         "image_format": "jpeg",
         "jpeg_quality": "88",
-        "request_timeout": "240",
+        "request_timeout": "600",
         "page_retries": "1",
     },
 }

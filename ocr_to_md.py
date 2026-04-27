@@ -29,6 +29,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 from typing import Iterable, Sequence
 
@@ -171,11 +172,7 @@ def get_pdf_page_count(pdf_path: Path, pdfinfo_from_path: object) -> int:
         info = pdfinfo_from_path(str(pdf_path))
         return int(info["Pages"])
     except Exception as exc:
-        print(f"Failed to inspect PDF: {pdf_path}", file=sys.stderr)
-        print(f"Details: {exc}", file=sys.stderr)
-        print("If this is a Poppler issue, install it with:", file=sys.stderr)
-        print("  brew install poppler", file=sys.stderr)
-        raise SystemExit(1)
+        raise RuntimeError(f"Failed to inspect PDF {pdf_path} (it may be broken or password protected): {exc}")
 
 
 def load_image(path: Path, Image: object) -> object:
@@ -184,9 +181,7 @@ def load_image(path: Path, Image: object) -> object:
         image.load()
         return image
     except Exception as exc:
-        print(f"Failed to open image: {path}", file=sys.stderr)
-        print(f"Details: {exc}", file=sys.stderr)
-        raise SystemExit(1)
+        raise RuntimeError(f"Failed to open image {path} (it may be broken or an unsupported format): {exc}")
 
 
 def render_pdf_page(pdf_path: Path, convert_from_path: object, dpi: int, page_num: int) -> object:
@@ -203,11 +198,7 @@ def render_pdf_page(pdf_path: Path, convert_from_path: object, dpi: int, page_nu
             raise RuntimeError(f"Poppler returned no image for page {page_num}.")
         return pages[0]
     except Exception as exc:
-        print(f"Failed to convert page {page_num} of PDF: {pdf_path}", file=sys.stderr)
-        print(f"Details: {exc}", file=sys.stderr)
-        print("If this is a Poppler issue, install it with:", file=sys.stderr)
-        print("  brew install poppler", file=sys.stderr)
-        raise SystemExit(1)
+        raise RuntimeError(f"Failed to convert page {page_num} of PDF {pdf_path}: {exc}")
 
 
 def prepare_image_bytes(
@@ -289,7 +280,7 @@ def ocr_image(
     return str(content).strip()
 
 
-def ocr_pdf_page_with_retries(
+def ocr_image_with_retries(
     ollama: object,
     page_image: object,
     ImageOps: object,
@@ -312,7 +303,7 @@ def ocr_pdf_page_with_retries(
 
         if attempt > 1:
             print(
-                "Retrying page with lighter settings "
+                "Retrying image with lighter settings "
                 f"(attempt {attempt}/{attempts}, "
                 f"max_side={attempt_max_side}, num_ctx={attempt_num_ctx})..."
             )
@@ -341,6 +332,8 @@ def ocr_pdf_page_with_retries(
             last_error = exc
             print(f"OCR attempt {attempt}/{attempts} failed: {exc}", file=sys.stderr)
             gc.collect()
+            if attempt < attempts:
+                time.sleep(3)
 
     raise RuntimeError(last_error or "OCR failed after all retry attempts.")
 
@@ -412,7 +405,7 @@ def process_file(
             page_image = None
             try:
                 page_image = render_pdf_page(input_file, convert_from_path, dpi, page_num)
-                page_text = ocr_pdf_page_with_retries(
+                page_text = ocr_image_with_retries(
                     ollama,
                     page_image,
                     ImageOps,
@@ -451,24 +444,22 @@ def process_file(
     else:
         print("Processing image 1/1...")
         image = load_image(input_file, Image)
-        image_bytes, image_suffix = prepare_image_bytes(
-            image,
-            ImageOps,
-            max_side,
-            image_format,
-            jpeg_quality,
-        )
-        markdown = ocr_image(
-            ollama,
-            image_bytes,
-            image_suffix,
-            model_name,
-            PROMPT,
-            num_ctx,
-            keep_alive,
-        )
-        if hasattr(image, "close"):
-            image.close()
+        try:
+            markdown = ocr_image_with_retries(
+                ollama=ollama,
+                page_image=image,
+                ImageOps=ImageOps,
+                model_name=model_name,
+                max_side=max_side,
+                image_format=image_format,
+                jpeg_quality=jpeg_quality,
+                num_ctx=num_ctx,
+                keep_alive=keep_alive,
+                page_retries=page_retries,
+            )
+        finally:
+            if hasattr(image, "close"):
+                image.close()
         write_markdown(output_file, markdown)
 
     print(f"Saved: {output_file}")
@@ -545,8 +536,8 @@ def parse_args(argv: Iterable[str]) -> argparse.Namespace:
     parser.add_argument(
         "--request-timeout",
         type=float,
-        default=180.0,
-        help="Per-request Ollama timeout in seconds. Default: 180.",
+        default=300.0,
+        help="Per-request Ollama timeout in seconds. Default: 300.",
     )
     parser.add_argument(
         "--start-page",
